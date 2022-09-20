@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+
+    <style>
+        *{
+            font-family: Georgia;
+        }
+        body{
+            margin: 0;
+        }
+        .search_page_content{
+            display: flex;
+            height: 70vh;
+            flex-direction: column;
+        }
+        #search_form{
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            justify-content: space-evenly;
+        }
+        .search_title{
+            font-size: 25px;
+            text-align: center;
+            font-weight: normal;
+        }
+        .search_url_input{
+            width: 50%;
+            padding: 20px 10px;
+            border-radius: 10px;
+            margin: auto;
+            display: block;
+            font-size: 19px;
+            border: 1px solid rgb(153, 153, 153);
+            outline: none;
+        }
+        .search_url_sumbit{
+            width: 30%;
+            border: 0;
+            padding: 15px;
+            text-align: center;
+            font-size: 23px;
+            display: block;
+            margin: auto;
+            cursor: pointer;
+            color: #fff;
+            background: #a261d9;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .search_url_sumbit:hover{
+            background: #834daf;
+        }
+        .search_radiobuttons{
+            display: flex;
+            flex-direction: row;
+            margin: 0 auto;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 70%;
+        }
+
+
+        .radio span{
+            font-size: 20px;
+            margin-left: 10px;
+        }
+        .search_rbtn {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+
+            font: inherit;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #000;
+            border-radius: 50%;
+
+            display: inline-grid;
+            place-content: center;
+        }
+
+        .search_rbtn::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            border-radius: 50%;
+            transform: scale(0);
+            background-color: #834daf;
+            transform: scale(0);
+            transition: 150ms transform ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .search_rbtn:checked::before {
+            transform: scale(1);
+            box-sizing: border-box;
+        }
+
+</style>
+</head>
+<body>
+    <div class="search_page_content">
+        <h2 class="search_title">Введите url страницы</h2>
+        <form action="{% url 'scrap:collect_data' %}" method="post" id="search_form">
+            {% csrf_token %}
+            <div class="search_radiobuttons">
+                <label class="radio">
+                    <input type="radio" id="pc_radiobutton" name="what_device" value="pc" checked class="search_rbtn">
+                    <span>💻 Компьютер</span>
+                </label>
+                <label class="radio">
+                    <input type="radio" id="android_radiobutton" name="what_device" value="android" class="search_rbtn">
+                    <span>📱 Android (смартфон)</span>
+                </label>
+                <label class="radio">
+                    <input type="radio" id="ios_radiobutton" name="what_device" value="ios" class="search_rbtn">
+                    <span>📱 IOS (смартфон)</span>
+                </label>
+            </div>
+
+            <div>
+                <input type="text" class="search_url_input" placeholder="E.g. https://example.com/" name="searched_url">
+                <input type="submit" value="Go go go !" class="search_url_sumbit">
+            </div>
+        </form>
+    </div>
+</body>
+</html>

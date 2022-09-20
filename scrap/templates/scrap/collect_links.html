@@ -1,0 +1,654 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collect links</title>
+
+
+        <style>
+        *{
+            font-family: Georgia;
+        }
+        body{
+            padding: 0;
+            margin: 0;
+        }
+        .frame_content{
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100vh;
+        }
+        .blur_until_loads{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            z-index: 1;
+        }
+        .frame_loaded{
+            display: none;
+        }
+
+
+        .iframe{
+            width: 100%;
+            height: 600px;
+            max-height: 50%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .iframe_h1, .iframe_h2{
+            font-size: 22px;
+            font-weight: lighter;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .iframe_h2{
+            font-size: 20px;
+            margin-top: 15px;
+        }
+        #iFrame{
+            width: 100%; 
+            flex: 1;
+            border: 0;
+            position: relative;
+            resize: both;
+            overflow: auto;
+            border-radius: 5px;
+            border-bottom: 1px solid #ccc;
+            margin: auto;
+        }
+
+
+
+        .content{
+            padding: 10px;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: calc(50% - 80px);
+            overflow-y: scroll;
+            overflow-x: hidden;
+            border-bottom: 1px solid #ccc;
+        }
+        .content_h1{
+            margin: 0;
+            font-size: 28px;
+            font-weight: lighter;
+            text-align: center;
+        }
+        table {
+            font-family: Georgia;
+            border-collapse: collapse;
+            width: 100%;
+            table-layout:fixed;
+        }
+        td, th{
+            border: 1px solid #dddddd;
+            border-top: none;
+            padding: 8px;
+            text-align: left;
+            width: calc(100% - 170px);
+        }
+        td{
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        th:nth-child(2), th:nth-child(3){
+            text-align: center;
+        }
+        th:first-child, td:first-child {
+            width: 100px;
+            text-align: center;
+        }
+        th:last-child, td:last-child{
+            width: 70px;
+            text-align: center;
+        }
+        .remove_element{
+            text-align: center;
+        }
+        .remove_element:hover{
+            background: rgba(245, 81, 81, 0.7);
+        }
+        .element_name_input{
+            height: 100%;
+            width: 95%;
+            font-size: 16px;
+            border: 0;
+            outline: none;
+        }
+
+        .confirm_data_collect{
+            height: 50px;
+            border: 0;
+            width: 50%;
+            background: #9577d3;
+            color: #fff;
+            border-radius: 5px;
+            margin: 40px auto;
+            font-size: 23px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+           letter-spacing: 1px;
+        }
+        .confirm_data_collect:hover{
+            background: #8863d0;
+        }
+    </style>
+
+
+    <style>
+        .frame_content{
+            height: 0;
+            overflow: hidden;
+            transition: height .5s ease-out;
+        }
+        .content{
+            min-height: initial;
+            height: 400px;
+        }
+        .collect_links_search_div{
+            display: flex;
+            flex-direction: row;
+            margin: 15px auto;
+            width: 70%;
+        }
+        .collect_links_search_btn{
+            text-align: center;
+            padding: 10px 15px;
+            box-sizing: border-box;
+            font-size: 19px;
+            background: #9577d3;
+            color: #fff;
+            border-radius: 5px;
+            margin: 0 15px;
+            cursor: pointer;
+        }
+        .collect_links_search_input{
+            flex: 1;
+            border: 1px solid rgb(153, 153, 153);
+            border-radius: 5px;
+            font-size: 19px;
+            margin-left: 15px;
+            outline: none;
+            padding: 0 10px;
+        }
+        .collect_links_search_btn:hover{
+            background: #8863d0;
+        }
+
+        .paste_urls{
+            margin: auto;
+            width: 100%;
+        }
+        .tagify{
+            border-radius: 5px;
+            width: 80%;
+            margin: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #b1b1b1;
+        }
+        .tagify__input{
+            min-height: 150px;
+        }
+        .frame_content .tagify__input{
+            min-height: initial;
+        }
+        #add_more_urls_2_input{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="iframe_h1">You can search page and select links</h1>
+    
+
+
+    <div class="collect_links_search_div">
+        <input type="text" class="collect_links_search_input" placeholder="E.g. https://example.com/" >
+        <span class="collect_links_search_btn">Search</span>
+        <input type="hidden" value="" id="task_id">
+    </div>
+    <div class="frame_content">
+        <div class="iframe">
+            <div class="blur_until_loads"></div>
+            {% if what_device != 1 %}<style>#iFrame{width: 40%;}</style>{% endif %}
+            <h1 class="iframe_h1">Выберите <strong>ссылки</strong>, где находятся Ваши элементы</h1>
+            <iframe src="{% static 'files/iframe.html' %}" title="iFrame" id="iFrame"></iframe>
+        </div>
+        <div class="content">
+            <h1 class="content_h1">Список элементов для считывания:</h1>
+            <div class="content_elems">
+                <table id="content_elems_table">
+                    <tr>
+                      <th>Кол-во элементов</th>
+                      <th>Атрибуты элемента</th>
+                      <th>Убрать</th>
+                    </tr>
+                </table>
+            </div>
+        </div>  
+
+        <div class="paste_urls">
+            <h2 class="iframe_h2">Add <strong>more</strong> pages, where we can harvest Your selected links <strong>above</strong><br><span style="font-size: 15px;">(optional)</span></h2>
+            <input type="text" id="add_more_urls_1_input" placeholder="E.g. https://example.com?page=1, https://example1.com?page=2">      
+        </div>
+    </div>
+
+    <div style="margin: 25px auto; font-size: 30px; text-align:center;">OR</div>
+
+    <div class="paste_urls">
+        <h1 class="iframe_h1">You can paste <strong>all links</strong>, where Your elements located</h1>
+        <input type="text" id="add_more_urls_2_input" placeholder="E.g. https://example.com/element_1_link/, https://example1.com/element_2_link/   (separate by comma)">
+    </div>
+
+
+
+    <span class="confirm_data_collect">Collect all links</span>
+       
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+<!-- Для введения доп ссылок как тегов -->
+<script src="https://unpkg.com/@yaireo/tagify"></script>
+<script src="https://unpkg.com/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
+<link href="https://unpkg.com/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+
+<script>
+    var all_elements = [];
+    var iframe_totally_loaded = false;
+    var order_in_all_elements = -1; //после добавления в список, мы сделаем ++ и это значение станет 0
+
+
+    
+    function getCookie(name) {
+        var matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    }
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getXPath( element )
+    {
+        var xpath = '';
+        for ( ; element && element.nodeType == 1; element = element.parentNode )
+        {
+            var id = $(element.parentNode).children(element.tagName).index(element) + 1;
+            id > 1 ? (id = '[' + id + ']') : (id = '');
+            xpath = '/' + element.tagName.toLowerCase() + id + xpath;
+        }
+        return xpath;
+    }
+
+    function check_status(){
+        $.ajax({
+            url: '/check_status/',
+            type: 'GET',
+            data: {
+                'task_id':document.getElementById('task_id').value,
+            },
+            dataType: 'json',
+            success: function(data){
+                if(data['response'] !== 'preparing'){
+                    document.getElementById('iFrame').src = data['response'];
+                    $('.frame_content').css('height', '100vh');
+                }
+                else if(data['response'] === 'preparing'){
+                    sleep(2000).then(() => { check_status(); });
+                }
+            },
+            error: function(){
+                alert('Error. Try again.')
+            }
+        });
+    }
+
+    function search_url_to_collect_links(){
+        $.ajax({
+            url: '/collect_links/',
+            type: 'GET',
+            data: {
+                'searched_url':$('.collect_links_search_input').val(),
+            },
+            dataType: 'json',
+            success: function(data){
+                $('#task_id').val(data['task_id']);
+                check_status();
+            },
+            error: function(){
+                alert('Error. Try again.')
+            }
+        });
+    };
+
+    function elem_left_click(e_target){
+        // собираем информацию по элементу, который кликнули
+        var elem_info = {};
+        $(e_target).each(function() {
+            elem_info['text'] = $(e_target).text().trim();
+            elem_info['xpath'] = getXPath(e_target);
+            elem_info['tag'] = e_target.tagName.toLowerCase();
+            $.each(e_target.attributes, function() {
+                if(this.specified) {
+                    elem_info[this.name] = this.value;
+                }
+            });
+        });
+        console.log(elem_info)
+
+
+        // проверяем, у нашего элемента класс, id или ничего нет
+        var class_str = '';
+        var text_str = '';
+        if(elem_info['class']){ //--------------------------------------------------------------------------------------------
+            // если у нас на одном элементе несколько классов
+            var elems = elem_info['class'].split(' ');
+            if(elems.length === 1){
+                class_str += '.' + elems[0];
+            }
+            else{
+                $(elems).each(function(i) {
+                    class_str += '.' + elems[i] + '';
+                });
+            }
+            
+            // находим похожие элементы и добавляем их в массив
+            var this_elem = [];
+            $('#iFrame').contents().find(class_str).each(function(){
+                if(elem_info['tag'] === 'a'){
+                    text_str += elem_info['href']+'| ';
+                }
+                else if(elem_info['tag'] === 'img'){
+                    text_str = 'Image(s) link(s)';
+                }
+                else{
+                    text_str += $(this).text().trim()+'| ';
+                }
+
+                var elem = {};
+                elem['text'] = $(this).text().trim();
+                elem['xpath'] = getXPath(this);
+                elem['tag'] = this.tagName.toLowerCase()
+                $.each(this.attributes, function() {
+                    if(this.specified) {
+                        elem[this.name] = this.value;
+                    }
+                });
+                this_elem.push(elem);
+            })
+            all_elements.push(this_elem);
+            order_in_all_elements ++;
+
+            $('#iFrame').contents().find(class_str).css('background', 'yellow').css('color', '#000');
+        }
+        else if(elem_info['id']){ //--------------------------------------------------------------------------------------------
+            $('#iFrame').contents().find('#'+elem_info['id']).css('background', 'yellow').css('color', '#000');
+            class_str = '#' + elem_info['id'];
+            
+            if(elem_info['tag'] === 'a'){
+                text_str = elem_info['href'];
+            }
+            else if(elem_info['tag'] === 'img'){
+                text_str = 'Image(s) link(s)';
+            }
+            else{
+                if(elem_info['text']){
+                    text_str = elem_info['text'];
+                }
+            }
+            
+            var elem = {};
+            elem['text'] = $(e_target).text().trim();
+            elem['xpath'] = getXPath(e_target);
+            elem['tag'] = e_target.tagName.toLowerCase()
+            $.each(e_target.attributes, function() {
+                if(this.specified) {
+                    elem[this.name] = this.value;
+                }
+            });
+            all_elements.push([elem]);
+            order_in_all_elements ++;
+        }
+        else if(elem_info['class'] === undefined && elem_info['id'] === undefined){ //--------------------------------------------------------------------------------------------
+            $('#iFrame').contents().find(e_target).css('background', 'yellow').css('color', '#000');
+            class_str = e_target;
+            if(elem_info['tag'] === 'a'){
+                text_str = elem_info['href'];
+            }
+            else if(elem_info['tag'] === 'img'){
+                text_str = 'Image(s) link(s)';
+            }
+            else{
+                if(elem_info['text']){
+                    text_str = elem_info['text'];
+                }
+            }
+            
+            var elem = {};
+            elem['text'] = $(e_target).text().trim();
+            elem['xpath'] = getXPath(e_target);
+            elem['tag'] = e_target.tagName.toLowerCase()
+            $.each(e_target.attributes, function() {
+                if(this.specified) {
+                    elem[this.name] = this.value;
+                }
+            });
+            all_elements.push([elem]);
+            order_in_all_elements ++;
+        }
+
+        
+        $('.content_elems table').append(
+            '<tr>' + 
+                '<td>' + $('#iFrame').contents().find(class_str).length + '</td>' + 
+                '<td>' + text_str +' </td>' +
+                '<td class="remove_element">x'+
+                    '<input type="hidden" value="'+ order_in_all_elements +'">'+
+                '</td>'+
+            '</tr>'
+        );
+    }
+    function elem_right_click(e_target){
+        // собираем информацию по элементу, который кликнули
+        var class_str = '';
+        var text_str = '';
+        var elem_info = {};
+        $(e_target).each(function() {
+            elem_info['text'] = $(e_target).text().trim();
+            elem_info['xpath'] = getXPath(e_target);
+            elem_info['tag'] = e_target.tagName.toLowerCase();
+            $.each(e_target.attributes, function() {
+                if(this.specified) {
+                    elem_info[this.name] = this.value;
+                }
+            });
+        });
+        all_elements.push([elem_info]);
+        order_in_all_elements ++;
+        
+        if(elem_info['tag'] === 'a'){
+            text_str += elem_info['href']+'| ';
+        }
+        else if(elem_info['tag'] === 'img'){
+            text_str = 'Image(s) link(s)';
+        }
+        else{
+            text_str += $(this).text().trim()+' ';
+        }
+
+        $('#iFrame').contents().find(e_target).css('background', 'yellow').css('color', '#000');       
+        $('.content_elems table').append(
+            '<tr>' + 
+                '<td>' + $('#iFrame').contents().find(e_target).length + '</td>' + 
+                '<td>' + text_str +' </td>' +
+                '<td class="remove_element">x'+
+                    '<input type="hidden" value="'+ order_in_all_elements +'">'+
+                '</td>'+
+            '</tr>'
+        );
+    }
+
+    function what_type_of_scraping_user_selected(){
+        if(tagify_1_input.value[0] == undefined && tagify_2_input.value[0] == undefined){
+            // если у нас есть значения 
+            if( document.getElementById('content_elems_table').getElementsByTagName('td').length > 0) {
+                return '1_case';
+            }
+            else{
+                alert('Choose smth');
+            }
+        }
+        else if(tagify_1_input.value[0] != undefined && tagify_2_input.value[0] != undefined){
+            alert('Here must be dialog box with specifying what type of parsing')
+        }
+        else if(tagify_1_input.value[0] != undefined && tagify_2_input.value[0] == undefined){
+            return '1_case';
+        }
+        else if(tagify_1_input.value[0] == undefined && tagify_2_input.value[0] != undefined){
+            return '2_case';
+        }
+        else{
+            return 'error';
+        }
+    }
+    function collect_links_start_task_with_url(all_links, type_of_link_collect, pages_list=undefined){
+        $.ajax({
+            url: '/collect_links_start_task_with_url/',
+            headers: { "X-CSRFToken": getCookie("csrftoken") },
+            type: 'POST',
+            data: {
+                'all_links':JSON.stringify(all_links),
+                'type_of_link_collect':type_of_link_collect,
+                'pages_list':JSON.stringify(pages_list),
+            },
+            dataType: 'json',
+            success: function(data){
+                if (data['response'] == 'url') {
+                    document.location = '/' + data['url_to_redirect'];
+                }
+            },
+            error: function(){
+                alert('Error. Try again.')
+            }
+        });
+    }
+
+
+
+
+    // ПОЛЯ ДОПОЛН. ССЫЛОК
+    // https://github.com/yairEO/tagify/blob/master/src/parts/defaults.js#L1
+    var input1 = document.querySelector('#add_more_urls_1_input');
+    var input2 = document.querySelector('#add_more_urls_2_input');
+    var options = {
+        autocomplete : false,
+        delimiters : ",",
+        duplicates : false,
+        callbacks: {
+            // add : e => { show_tagify_values() },
+            // remove : onRemoveTag
+        }
+    }
+    var tagify_1_input = new Tagify(input1, options)
+    var tagify_2_input = new Tagify(input2, options)
+
+    
+    $(document).on('click', '.collect_links_search_btn', function(e){
+        search_url_to_collect_links();
+    });
+
+    $(document).on('click', '.confirm_data_collect', function(e){
+        var what_type = what_type_of_scraping_user_selected();
+        if(what_type == '1_case'){
+            var values = tagify_1_input.value;
+            var pages_list = [];
+            if(values !== undefined){
+                for(i=0; i<values.length; i++){
+                    pages_list.push(values[i]['value'])
+                }
+                //  если ссылки, которую указал пользователь в поиске нет. добавим её
+                if(!pages_list.includes($('.collect_links_search_input').val())){
+                    pages_list = [$('.collect_links_search_input').val()].concat(pages_list)
+                }
+            }
+            console.log(pages_list)
+            collect_links_start_task_with_url(all_elements, '1_case', pages_list)
+        }
+        else if(what_type == '2_case'){
+            var values = tagify_2_input.value;
+            var all_links = [];
+            for(i=0; i<values.length; i++){
+                all_links.push(values[i]['value'])
+            }
+            console.log(all_links)
+            collect_links_start_task_with_url(all_links, '2_case')
+        }
+    });
+
+
+
+
+    $('#iFrame').on('load', function() {
+        $('.blur_until_loads').addClass('frame_loaded');
+        $('#iFrame').contents().find('head').append('<style>*{cursor:pointer !important}</style>')
+
+        $('#iFrame').contents().bind("contextmenu",function(e){
+            e.preventDefault();
+
+            var nearest_link = $(e.target).closest('a');
+            console.log(nearest_link.attr('href'))
+            if(nearest_link.attr('href') !== undefined){
+                elem_right_click(nearest_link[0]);
+                return false;
+            }
+            else{
+                alert('Click a little bit lower or upper')
+            }  
+        }); 
+        
+        $('#iFrame').contents().click(function(e){ // $('#iFrame').contents().find('a') НЕ работает, без понятия почему. Поэтому ищем ближайшую ссылку
+            e.preventDefault();
+
+            var nearest_link = $(e.target).closest('a');
+            if(nearest_link.attr('href') !== undefined){
+                elem_left_click(nearest_link[0])
+            }
+            else{
+                alert('Click a little bit lower or upper')
+            }            
+        });
+    });
+
+    
+
+    //убираем все свойства, которые нацепили элементу
+    $(document).on('click', '.remove_element', function(e){
+        var this_order = $(this).find('input').val();
+        var elements = all_elements[this_order];
+        var parent = $(this).parent();
+        all_elements[this_order] = [];
+
+        $(elements).each(function(){
+            var this_elem = document.evaluate(this['xpath'], document.getElementById("iFrame").contentDocument,null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            this_elem.removeAttribute('style');
+            parent.remove();
+        })
+    })
+
+</script>
+
+</html>

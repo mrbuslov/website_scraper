@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category</title>
+
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+            font-family: Georgia;
+        }
+        .category_h1{
+            font-weight: lighter;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .categories{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .category{
+            margin-bottom: 20px;
+            width: 300px;
+            text-align: center;
+            font-size: 18px;
+            padding: 20px;
+            box-shadow: 0 0 8px 0px #828282;
+            box-sizing: border-box;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: box-shadow .3s ease;
+        }
+        .category:hover{
+            box-shadow: 0 0 5px 5px #828282;
+        }
+        .category_button_submit{
+            width: 30%;
+            border: 0;
+            padding: 15px;
+            text-align: center;
+            font-size: 23px;
+            display: block;
+            margin: auto;
+            cursor: pointer;
+            color: #fff;
+            background: #a261d9;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .category_button_submit:hover{
+            background: #834daf;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="category_h1">Choose the category</h1>
+    <div class="categories">
+        <div class="category" value="1">
+            Harvest elements on 1 page
+        </div>
+        <div class="category" value="2">
+            Choose elements on 1 page <br> Then paste links where to harvest these elements
+        </div>
+        <div class="category" value="3">
+            Choose elements on 1 page <br> Then paste links where to harvest these elements <br> But links load while  <strong>scrolling</strong>
+        </div>
+        <div class="category" value="1">
+            I don't know o_o <br> Just start and then we'll see
+        </div>
+        <form action="{% url 'scrap:search' %}" method="post" style="width: 100%;">
+            {% csrf_token %}
+            <input type="hidden" value="1" name="what_category" class="category_input">
+            <input type="submit" value="Let's go!" class="category_button_submit">
+        </form>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script>
+    window.addEventListener("load", function(event) {
+        $('.category').first().css('box-shadow', '0 0 5px 5px #828282');
+    });
+    $(".category").click(function(e){
+        $(".category_input").val($(this).attr('value'));
+        $('.category').css('box-shadow', '0 0 8px 0px #828282');
+        $(this).css('box-shadow', '0 0 5px 5px #828282');
+    });
+</script>
+
+</html>

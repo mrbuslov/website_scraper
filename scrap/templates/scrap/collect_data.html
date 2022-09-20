@@ -1,0 +1,447 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collect data</title>
+
+        <style>
+        *{
+            font-family: Georgia;
+        }
+        body{
+            padding: 0;
+            margin: 0;
+        }
+        .frame_content{
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100vh;
+        }
+        .blur_until_loads{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            z-index: 1;
+        }
+        .frame_loaded{
+            display: none;
+        }
+
+
+        .iframe{
+            width: 100%;
+            height: 600px;
+            max-height: 50%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .iframe_h1{
+            font-size: 22px;
+            font-weight: lighter;
+            text-align: center;
+            margin: 10px 0;
+        }
+        #iFrame{
+            width: 100%; 
+            flex: 1;
+            border: 0;
+            position: relative;
+            resize: both;
+            overflow: auto;
+            border-radius: 5px;
+            border-bottom: 1px solid #ccc;
+            margin: auto;
+        }
+
+
+
+        .content{
+            padding: 10px;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: calc(50% - 80px);
+            overflow-y: scroll;
+            overflow-x: hidden;
+            border-bottom: 1px solid #ccc;
+        }
+        .content_h1{
+            margin: 0;
+            font-size: 28px;
+            font-weight: lighter;
+            text-align: center;
+        }
+        table {
+            font-family: Georgia;
+            border-collapse: collapse;
+            width: 100%;
+            table-layout:fixed;
+        }
+        td, th{
+            border: 1px solid #dddddd;
+            border-top: none;
+            padding: 8px;
+            text-align: left;
+            width: calc(100% - 170px);
+        }
+        td{
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        th:nth-child(2), th:nth-child(3){
+            text-align: center;
+        }
+        th:first-child, th:nth-child(2), td:first-child {
+            width: 100px;
+            text-align: center;
+        }
+        th:nth-child(2){
+            width: 250px;
+        }
+        th:last-child, td:last-child{
+            width: 70px;
+            text-align: center;
+        }
+        .remove_element{
+            text-align: center;
+        }
+        .remove_element:hover{
+            background: rgba(245, 81, 81, 0.7);
+        }
+        .element_name_input{
+            height: 100%;
+            width: 95%;
+            font-size: 16px;
+            border: 0;
+            outline: none;
+        }
+
+        .confirm_data_collect{
+            height: 50px;
+            border: 0;
+            width: 50%;
+            background: #9577d3;
+            color: #fff;
+            border-radius: 5px;
+            margin: 15px auto;
+            font-size: 19px;
+            cursor: pointer;
+            display: block;
+        }
+        .confirm_data_collect:hover{
+            background: #8863d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="frame_content">
+        <div class="iframe">
+            <div class="blur_until_loads"></div>
+            <h1 class="iframe_h1">Кликните по элементу, который Вы хотите считать</h1>
+            {% if what_device != 1 %}
+            <style>#iFrame{width: 40%;}</style>
+            {% endif %}
+            <iframe src="{% static 'files/iframe.html' %}" title="iFrame" id="iFrame"></iframe>
+            <input type="hidden" value="{{task_id}}" id="task_id">
+        </div>
+        <div class="content">
+            <h1 class="content_h1">Список элементов для считывания:</h1>
+            <div class="content_elems">
+                <table id="content_elems_table">
+                    <tr>
+                      <th>Кол-во элементов</th>
+                      <th>Название</th>
+                      <th>Атрибуты элемента</th>
+                      <th>Убрать</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <form action="{% url 'scrap:collect_links' %}" method="post" id="elems_table_form">
+            {% csrf_token %}
+            <input type="submit" class="confirm_data_collect" value="Search">\
+        </form>
+        
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+<script>
+    
+    function getCookie(name) {
+        var matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    }
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getXPath( element )
+    {
+        var xpath = '';
+        for ( ; element && element.nodeType == 1; element = element.parentNode )
+        {
+            var id = $(element.parentNode).children(element.tagName).index(element) + 1;
+            id > 1 ? (id = '[' + id + ']') : (id = '');
+            xpath = '/' + element.tagName.toLowerCase() + id + xpath;
+        }
+        return xpath;
+    }
+
+    function check_status(){
+        $.ajax({
+            url: '/check_status/',
+            type: 'GET',
+            data: {
+                'task_id':document.getElementById('task_id').value,
+            },
+            dataType: 'json',
+            success: function(data){
+                console.log(data['response'])
+                if(data['response'] !== 'preparing'){
+                    document.getElementById('iFrame').src = data['response'];
+                    iframe_totally_loaded = true;
+                    $('.blur_until_loads').addClass('frame_loaded');
+                    $("#iframe").contents().css('cursor', 'pointer');
+                }
+                else if(data['response'] === 'preparing'){
+                    sleep(2000).then(() => { check_status(); });
+                }
+            },
+            error: function(){
+                alert('Error')
+            }
+        });
+    }
+
+
+    var all_elements = [];
+    var iframe_totally_loaded = false;
+    var order_in_all_elements = -1; //после добавления в список, мы сделаем ++ и это значение станет 0
+    function elem_left_click(e){
+        e.preventDefault();
+
+        // собираем информацию по элементу, который кликнули
+        var elem_info = {};
+        $(e.target).each(function() {
+            elem_info['text'] = $(e.target).text().trim();
+            elem_info['xpath'] = getXPath(e.target);
+            elem_info['tag'] = e.target.tagName.toLowerCase()
+            $.each(e.target.attributes, function() {
+                if(this.specified) {
+                    elem_info[this.name] = this.value;
+                }
+            });
+        });
+
+        // проверяем, у нашего элемента класс, id или ничего нет
+        var class_str = '';
+        var text_str = '';
+        if(elem_info['class']){ //--------------------------------------------------------------------------------------------
+            // если у нас на одном элементе несколько классов
+            var elems = elem_info['class'].split(' ');
+            if(elems.length === 1){
+                class_str += '.' + elems[0];
+            }
+            else{
+                $(elems).each(function(i) {
+                    class_str += '.' + elems[i] + '';
+                });
+            }
+            console.log(class_str)
+            // находим похожие элементы и добавляем их в массив
+            var this_elem = [];
+            $('#iFrame').contents().find(class_str).each(function(){
+                text_str += $(this).text().trim()+'| ';
+
+                var elem = {};
+                elem['text'] = $(this).text().trim();
+                elem['xpath'] = getXPath(this);
+                elem['tag'] = this.tagName.toLowerCase()
+                $.each(this.attributes, function() {
+                    if(this.specified) {
+                        elem[this.name] = this.value;
+                    }
+                });
+                this_elem.push(elem);
+            })
+            all_elements.push(this_elem);
+            order_in_all_elements ++;
+
+            $('#iFrame').contents().find(class_str).css('background', 'yellow').css('color', '#000');
+        }
+        else if(elem_info['id']){ //--------------------------------------------------------------------------------------------
+            $('#iFrame').contents().find('#'+elem_info['id']).css('background', 'yellow').css('color', '#000');
+            class_str = '#' + elem_info['id'];
+            if(elem_info['text']){
+                text_str = elem_info['text'];
+            }
+            
+            var elem = {};
+            elem['text'] = $(e.target).text().trim();
+            elem['xpath'] = getXPath(e.target);
+            elem['tag'] = e.target.tagName.toLowerCase()
+            $.each(e.target.attributes, function() {
+                if(this.specified) {
+                    elem[this.name] = this.value;
+                }
+            });
+            all_elements.push([elem]);
+            order_in_all_elements ++;
+        }
+        else if(elem_info['class'] === undefined && elem_info['id'] === undefined){ //--------------------------------------------------------------------------------------------
+            $('#iFrame').contents().find(e.target).css('background', 'yellow').css('color', '#000');
+            class_str = e.target;
+            if(elem_info['text']){
+                text_str = elem_info['text'];
+            }
+            
+            var elem = {};
+            elem['text'] = $(e.target).text().trim();
+            elem['xpath'] = getXPath(e.target);
+            elem['tag'] = e.target.tagName.toLowerCase()
+            $.each(e.target.attributes, function() {
+                if(this.specified) {
+                    elem[this.name] = this.value;
+                }
+            });
+            all_elements.push([elem]);
+            order_in_all_elements ++;
+            console.log(elem)
+        }
+
+        
+        $('.content_elems table').append(
+            '<tr>' + 
+                '<td>' + $('#iFrame').contents().find(class_str).length + '</td>' + 
+                '<td><input type="text" placeholder="Элемент..." class="element_name_input" required></td>' + 
+                '<td>' + text_str +' </td>' +
+                '<td class="remove_element">x'+
+                    '<input type="hidden" value="'+ order_in_all_elements +'">'+
+                '</td>'+
+            '</tr>'
+        );
+    }
+    function elem_right_click(e){
+        e.preventDefault();
+        var class_str = e.target;
+        var text_str = '';
+        if($(e.target).text()){
+            text_str = $(e.target).text().trim();
+        }
+
+        // собираем информацию по элементу, который кликнули
+        var elem_info = {};
+        $(e.target).each(function() {
+            elem_info['text'] = $(e.target).text().trim();
+            elem_info['xpath'] = getXPath(e.target);
+            elem_info['tag'] = e.target.tagName.toLowerCase()
+            $.each(e.target.attributes, function() {
+                if(this.specified) {
+                    elem_info[this.name] = this.value;
+                }
+            });
+        });
+        all_elements.push([elem_info]);
+        order_in_all_elements ++;
+
+        $('#iFrame').contents().find(class_str).css('background', 'yellow').css('color', '#000');        
+        $('.content_elems table').append(
+            '<tr>' + 
+                '<td>' + $('#iFrame').contents().find(class_str).length + '</td>' + 
+                '<td><input type="text" placeholder="Элемент..." class="element_name_input" required></td>' + 
+                '<td>' + text_str +' </td>' +
+                '<td class="remove_element">x'+
+                    '<input type="hidden" value="'+ order_in_all_elements +'">'+
+                '</td>'+
+            '</tr>'
+        );
+    }
+
+
+
+
+
+    
+    $("#elems_table_form").click(function(e){
+        e.preventDefault();
+        var data = JSON.stringify(all_elements);
+
+        var all_elements_names = [];
+        $(".element_name_input").each(function(){all_elements_names.push($(this).val());});
+        all_elements_names = JSON.stringify(all_elements_names);
+
+
+
+        $.ajax({
+            url: "/process_data/",
+            headers: { "X-CSRFToken": getCookie("csrftoken") },
+            method : "post",
+            dataType : "json",
+            data : {
+                'data':data,
+                'all_elements_names':all_elements_names,
+            },
+            timeout: 1000,
+            success: function (response) {
+                if (response['response'] == 'ok') {
+                    // $("#elems_table_form").submit();
+                } 
+                else if (response['response'] == 'url') {
+                    $('#elems_table_form').attr('action', response['url_to_redirect']);
+                    $("#elems_table_form").submit();
+                }
+            },
+            error: function (response) {
+                // Request error. Display right error message 
+            }
+        });
+    });
+
+    $('#iFrame').on('load', function() {
+        if(!iframe_totally_loaded){
+            check_status()
+        }
+        else{
+            $('#iFrame').contents().find('head').append('<style>*{cursor:pointer !important}</style>')
+            globalThis.all_elements;
+            $('.blur_until_loads').addClass('frame_loaded');
+
+            $('#iFrame').contents().bind("contextmenu",function(e){
+                elem_right_click(e);
+                return false;
+            }); 
+            
+            $('#iFrame').contents().click(function(e){
+                elem_left_click(e);
+            });
+        }
+    });
+
+
+    //убираем все свойства, которые нацепили элементу
+    $(document).on('click', '.remove_element', function(e){
+        var this_order = $(this).find('input').val();
+        var elements = all_elements[this_order];
+        var parent = $(this).parent();
+        all_elements[this_order] = [];
+
+        $(elements).each(function(){
+            var this_elem = document.evaluate(this['xpath'], document.getElementById("iFrame").contentDocument,null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            this_elem.removeAttribute('style');
+            parent.remove();
+        })
+    })
+
+</script>
+
+</html>

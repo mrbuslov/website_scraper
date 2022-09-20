@@ -1,0 +1,21 @@
+#     ВСЕ ФАЙЛЫ ДОЛЖНЫ БЫТЬ В ОДНОЙ ПАПКЕ С ПРОЕКТОМ
+
+# чтобы создать докер: python-django - это имя 
+docker build --tag python-django .
+
+# чтобы запустить его
+docker run --publish 80:80 python-django
+
+# увидим все наши image   //  контейнеры
+docker image              //  docker container ls
+
+#----------------------- Внести изменения в docker -----------------------------------
+# подтвержаем изменения, 5231fd8413ce - id контейнера (можно попробовать и id image, но тогда ругается)
+docker commit 5231fd8413ce python-django
+# сохраняем наш image, 7ad0829fa9f2 - id image`а
+docker save -o ./python-django-save.rar 7ad0829fa9f2
+# загружаем обратно
+docker load -i ./python-django-save.rar 
+
+# запустить redis
+docker run -d -p 6379:6379 redis

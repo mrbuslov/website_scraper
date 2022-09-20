@@ -1,0 +1,562 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My parsings</title>
+
+    <style>
+        *{
+            font-family: Georgia;
+        }
+        a{
+            text-decoration: none;
+            color: #5d64ec;
+        }
+        body{
+            padding: 0;
+            margin: 0;
+        }
+        .my_parsings_content{
+            display: flex;
+            flex-direction: row;
+        }
+
+        .scraps{
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .empty_scraps_list{
+            margin: 0;
+            font-size: 25px;
+            text-align: center;
+            font-weight: normal;
+            margin-top: 100px;
+        }
+
+        .scrap{
+            width: 85%;
+            margin: 0;
+            margin-bottom: 10px;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-top: 15px;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+        .scrap_head{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        .scrap_name{
+            flex: 1;
+            border: 0;
+            border-radius: 5px;
+            outline: none;
+            font-size: 17px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .scrap_searching_device, .scrap_published{
+            margin: 0 10px;
+        }
+        .scrap_description{
+            margin-top: 15px;
+            outline: none;
+            width: 100%;
+            height: 100px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            resize: none;
+            border: 0;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .related_files{
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .related_file{
+            min-height: 40px;
+            font-size: 18px;
+            border-radius: 5px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        .json_color, .csv_color{
+            color: #fff;
+            background: #62a659;
+        }
+        .csv_color{
+            background: #107c41;
+        }
+        .default_color{
+            background: #fff;
+            color: #000;
+        }
+        .related_file_name{
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+        }
+        .related_file_download{
+            width: 40px;
+            border-left: 1px solid #ccc;
+            display: flex;
+        }
+        .related_file_download img{
+            width: 100%;
+        }
+
+
+        .file_content{
+            width: 40%;
+            padding: 15px;
+            box-sizing: border-box;
+            right: 0;
+        }
+        .file_content_h1{
+            font-size: 22px;
+            font-weight: normal;
+            text-align: center;
+            margin: 0;
+        }
+        .file_content_wrapper{
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+            box-sizing: border-box;
+            min-height: 150px;
+        }
+        .json_file_content{
+            display: none;
+            position: relative;
+        }
+        .hljs-copy-button{
+            transform: none !important;
+        }
+        .hljs-ln-numbers{
+            text-align: right;
+            border-right: 1px solid #999;
+            color: #999;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            margin-right: 10px !important;
+            display: block !important;
+            padding-right: 5px !important;
+        }
+        .unavailable_json_blur, .unavailable_json_text, .unavailable_csv_blur, .unavailable_csv_text{
+            width: 100%;
+            height: 70%;
+            position: absolute;
+            bottom: 0;
+            display: none;
+        }
+        .unavailable_csv_blur{
+            height: 50%;
+        }
+        .unavailable_json_blur, .unavailable_csv_blur{
+            filter: blur(5px);
+            -webkit-filter: blur(5px);
+            background: rgba(255,255,255,.4);
+            backdrop-filter: blur(1px);
+        }
+        .unavailable_json_text, .unavailable_csv_text{
+            width: 100%;
+            height: 100px;
+            font-size: 25px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            text-align: center;
+            padding: 10px 15px;
+            box-sizing: border-box;
+            background: rgba(255,255,255,.7);
+        }
+        .actions_with_file{
+            display: none;
+            flex-direction: column;
+        }
+        .action_download_file, .action_copy, .action_send_to_email{
+            width: 70%;
+            border-radius: 12px;
+            padding: 10px 0;
+            box-sizing: border-box;
+            margin: auto;
+            display: block;
+            text-align: center;
+            font-size: 17px;
+            text-decoration: none;
+            color: #fff;
+            background: #77d777;
+            cursor: pointer;
+            position: relative;
+        }
+        .other_actions{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            margin-top: 10px;
+        }
+        .action_copy{
+            width: 40%;
+            background: #ff5757;
+        }
+        .action_copy_notification, .action_send_notification{
+            position: absolute;
+            padding: 10px 15px;
+            font-size: 19px;
+            border-radius: 5px;
+            background: #ccc;
+            top: 65px;
+            left: 50%;
+            transform:translate(-50%,-50%);
+            margin: auto;
+            color: #000;
+            
+            display: none;
+            opacity: 0;
+            transition: opacity .3s ease;
+            z-index: 1;
+        }
+        .action_send_to_email{
+            width: 40%; 
+            background: #9595fd;
+        }
+        
+        .csv_file_content{
+            overflow-y: hidden;
+            overflow-x: auto;
+            border-collapse: collapse;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            display: none;
+            background: #fff;
+            margin-top: 15px;
+        }
+        .csv_file_content th {
+            background: #009578;
+            color: #ffffff;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+        .csv_file_content td{
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        .csv_file_content th, .csv_file_content td {
+            padding: 10px 20px;
+        }
+        .csv_file_content tr:nth-child(even) {
+            background: #f4f4f4;
+        }
+
+        
+        .table_wrapper{
+            position: relative;
+        }
+    </style>
+
+
+</head>
+<body>
+    <div class="my_parsings_content">
+        <div class="scraps">
+            {% for scrap in scraps %}
+                <div class="scrap">
+                    <div class="scrap_head">
+                        <input type="text" class="scrap_name" value="{{scrap.title}}" placeholder="Name this parsing...">
+                        <span class="scrap_searching_device">{{scrap.get_searching_device}}</span>
+                        <span class="scrap_published">{{scrap.published|date:"d.m.y"}}</span>
+                        <input type="hidden" value="{{scrap.id}}" class="scrap_id">
+                    </div>
+                    <textarea class="scrap_description" placeholder="Make some notes here...">{{scrap.content}}</textarea>
+                    <div class="related_files">
+                        {% if scrap.get_related_files %}
+                            {% for file in scrap.get_related_files %}
+                                <div class="related_file {{file.get_file_color}}">
+                                    <span class="related_file_name">
+                                        file.{{file.file_format}}
+                                        <input type="hidden" value="{{file.id}}">
+                                    </span>
+                                    {% if file.status == 'available' %}
+                                        <a href="/{{file.file}}" class="related_file_download" download><img src="{% static 'img/download.png' %}" alt="download file button"></a>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <span style="font-size: 17px; color: #888; display: block; text-align: center; width: 100%;">When the files are created, we will send you a notification by email. Come back here a little later.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <h1 class="empty_scraps_list">Let's scrap something! <a href="{% url 'scrap:category' %}">Click here!</a> </h1>
+            {% endfor %}
+        </div>
+
+        <div class="file_content">
+            <h1 class="file_content_h1">Click the file to show content</h1>
+            <div class="file_content_wrapper">
+                <div class="actions_with_file">
+                    <span class="action_download_file">Download file</span>
+                    <input type="hidden" class="file_path_to_download">
+                    <div class="other_actions">
+                        <span class="action_copy">
+                            Copy
+                            <div class="action_copy_notification">Copied!</div>
+                        </span>
+                        <span class="action_send_to_email">
+                            <span>Send to Email</span>
+                            <div class="action_send_notification">Sent!</div>
+                        </span>
+                    </div>
+                </div>
+                <pre class="json_file_content"><code>{
+    "": ""
+}
+                    </code>
+                    <div class="unavailable_json_blur"></div>
+                    <div class="unavailable_json_text"><span>You can pay <a href="#">here</a></span> <span>to unlock files</span></div>
+                </pre>
+                
+                <div class="table_wrapper">
+                    <table class="csv_file_content"></table>
+                    <div class="unavailable_csv_blur"></div>
+                    <div class="unavailable_csv_text"><span>You can pay <a href="#">here</a></span> <span>to unlock files</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+    <script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css" />
+
+
+    <!-- Подключаем красивое отображение кода -->
+    <!-- Темы: https://highlightjs.org/static/demo/ -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/agate.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.6.0/highlightjs-line-numbers.min.js" integrity="sha512-nkjLcPbHjdAof51b8uUd+6q4YH7YrMwh+kfTwSBrg5T/yMKrz8GUxM4uJJ1xAL7Q1lfAMIEowDsTzfWskZ5RcQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        hljs.initLineNumbersOnLoad();
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((el) => {hljs.highlightElement(el);});
+        });
+    </script>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+        function getCookie(name) {
+            var matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        }
+        function get_file_content(file_id){
+            $('html,body').animate({ scrollTop: 0 }, 'slow');
+            $.ajax({
+                url: '/get_file_content/',
+                type: 'GET',
+                data: {
+                    'file_id':file_id,
+                },
+                dataType: 'json',
+                success: function(data){
+                    if(data['file_status'] == 'available'){
+                        var file_path = '/' + data['file_path']
+                        generate_html_for_loaded_content(file_path.split('.').at(-1), data['file_status'], data['content'], file_path)
+                    }
+                    else if(data['file_status'] == 'unavailable'){
+                        var file_extension = data['file_path']
+                        generate_html_for_loaded_content(file_extension, data['file_status'], data['content'])
+                    }
+                },
+                error: function(){
+                    alert('Error. Try again.')
+                }
+            });
+        }
+        function generate_html_for_loaded_content(type, status, data, file_path=''){
+            if(type === 'json'){
+                $('.csv_file_content').css('display', 'none');
+                $('.unavailable_csv_blur').css('display', 'none'); 
+                $('.unavailable_csv_text').css('display', 'none'); 
+                $('.json_file_content').css('display', 'block');
+                if(status == 'available'){
+                    $('.json_file_content code').text(JSON.stringify(data, null, "    "));
+                    $('.unavailable_json_blur').css('display', 'none'); 
+                    $('.unavailable_json_text').css('display', 'none'); 
+                    $('.file_path_to_download').val(file_path);
+                    $('.action_copy').css('display', 'block');
+
+                    hljs.initLineNumbersOnLoad();
+                    document.querySelectorAll('pre code').forEach((el) => {hljs.highlightElement(el);});
+
+                    $('.actions_with_file').css('display', 'flex');
+                }
+                else if(status == 'unavailable'){
+                    $('.json_file_content code').text(data);
+                    $('.unavailable_json_blur').css('display', 'block'); 
+                    $('.unavailable_json_text').css('display', 'flex'); 
+
+                    hljs.initLineNumbersOnLoad();
+                    document.querySelectorAll('pre code').forEach((el) => {hljs.highlightElement(el);});
+
+                    $('.actions_with_file').css('display', 'none');
+                }
+            }
+            else if(type === 'csv'){
+                $(".csv_file_content > tr").remove(); // очищаем таблицу
+                $('.json_file_content').css('display', 'none');
+                $('.unavailable_json_blur').css('display', 'none'); 
+                $('.unavailable_json_text').css('display', 'none'); 
+                $('.csv_file_content').css('display', 'block');
+
+                var counter = 0; // для того, чтобы сделать <th>
+                for(i=0; i < data.length; i++){
+                    if(counter !== 0){
+                        inner_elems_html = '<td>' + data[counter].split(';').join('</td><td>') + '</td>';
+                        $('.csv_file_content').append('<tr>' + inner_elems_html + '</tr>')
+                    }
+                    else{
+                        // разделяем первый элемент на ';', затем соединяем их </th><th> и обволакиваем в <th> и </th>
+                        inner_elems_html = '<th>' + data[counter].split(';').join('</th><th>') + '</th>';
+                        $('.csv_file_content').append('<tr>' + inner_elems_html + '</tr>')
+                    }
+                    counter ++;
+                }
+
+                if(status == 'available'){
+                    $('.actions_with_file').css('display', 'flex');
+                    $('.unavailable_csv_blur').css('display', 'none'); 
+                    $('.unavailable_csv_text').css('display', 'none'); 
+                    $('.file_path_to_download').val(file_path);
+                    $('.action_copy').css('display', 'none');
+                }
+                else if(status == 'unavailable'){
+                    $('.actions_with_file').css('display', 'none');
+                    $('.unavailable_csv_blur').css('display', 'block'); 
+                    $('.unavailable_csv_text').css('display', 'flex'); 
+                }
+            }
+        }
+
+        function download_file(uri, name) 
+        {
+            var link = document.createElement("a");
+            link.setAttribute('download', '');
+            link.href = uri;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+        function send_file_to_email(file_path){
+            $('.action_send_to_email span').text('Sending...');
+            $.ajax({
+                url: '/send_file_to_email/',
+                type: 'POST',
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                data: {
+                    'file_path':file_path,
+                },
+                dataType: 'json',
+                success: function(data){
+                    if(data['response'] == 'ok'){
+                        $('.action_send_notification').css('display', 'block')
+                        setTimeout(function(){ $('.action_send_notification').css('opacity', '1');}, 100)
+                        setTimeout(function(){$('.action_send_notification').css('opacity', '0');}, 1000)
+                        setTimeout(function(){$('.action_send_notification').css('display', 'none');}, 1300)
+                        
+                        $('.action_send_to_email span').text('Send to Email');
+                    }
+                    else{
+                        alert('Error. Try again.')
+                    }
+                },
+                error: function(){
+                    alert('Error. Try again.')
+                }
+            });
+        }
+        function change_scrap_content(text, what_field, scrap_id){
+            $.ajax({
+                url: '/change_scrap_content/',
+                type: 'POST',
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                data: {
+                    'text':text,
+                    'what_field':what_field,
+                    'scrap_id':scrap_id,
+                },
+                dataType: 'json',
+                error: function(){
+                    alert('Error. Try again.')
+                }
+            });
+        }
+
+
+        $(document).on('click', '.related_file_name', function(e){
+            get_file_content($(this).find('input').val());
+        });
+        $(document).on('click', '.action_download_file', function(e){
+            download_file($('.file_path_to_download').val());
+        });
+        $(document).on('click', '.action_copy', function(e){
+            $('.hljs-copy-button').click();
+            $('.action_copy_notification').css('display', 'block')
+            setTimeout(function(){ $('.action_copy_notification').css('opacity', '1');}, 100)
+            setTimeout(function(){$('.action_copy_notification').css('opacity', '0');}, 1000)
+            setTimeout(function(){$('.action_copy_notification').css('display', 'none');}, 1300)
+        });
+        $(document).on('click', '.action_send_to_email', function(e){
+            send_file_to_email($('.file_path_to_download').val());
+        });
+        // когда мы изменяем название или описание
+        $(document).ready(function(e){
+            $('input').focusout(function(){
+                change_scrap_content($(this).val(), 'input', $(this).closest('.scrap').find($('.scrap_id')).val())
+            });
+            $('textarea').focusout(function(){
+                change_scrap_content($(this).val(), 'textarea', $(this).closest('.scrap').find($('.scrap_id')).val())
+            });
+        });
+
+        // кнопка копирования элемента
+        hljs.addPlugin(
+            new CopyButtonPlugin({
+                callback: (text, el) => console.log("Copied to clipboard", text),
+            })
+        );
+
+
+
+
+
+    </script>
+</html>
